@@ -1,6 +1,6 @@
 import crypto from "crypto";
-import { ValidationError } from "../../../../packages/error-handler";
-import redis from "../../../../packages/libs/redis";
+import { ValidationError } from "@packages/error-handler";
+import redis from "@packages/libs/redis";
 import { NextFunction } from "express";
 import { sendEmail } from "./sendMail";
 
@@ -63,7 +63,7 @@ export const trackOtpRequests = async (email: string, next: NextFunction) => {
     );
   }
 
-  await redis.set(otpRequestKey, otpRequests + 1, "EX", 3600);  //Track request for 1 hour
+  await redis.set(otpRequestKey, otpRequests + 1, "EX", 3600); //Track request for 1 hour
 };
 
 export const sendOtp = async (
