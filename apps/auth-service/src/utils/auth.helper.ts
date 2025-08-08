@@ -76,3 +76,36 @@ export const sendOtp = async (
   await redis.set(`otp: ${email}`, otp, "EX", 300); //second
   await redis.set(`otp_cooldown: ${email}`, "true", "EX", 60);
 };
+
+export const verifyOtp = async (
+  email: string,
+  otp: string,
+  next: NextFunction
+) => {
+  const storedOtp = await redis.get(`otp: ${email}`);
+  if (!storedOtp) {
+    throw new ValidationError("Invalid or expire OTP!");
+  }
+
+  const failedAttemptsKey = `otp_attemps: ${email}`;
+  const failedAttempts = parseInt((await redis.get(failedAttemptsKey)) || "0");
+
+  if (storedOtp !== otp) {
+    if (failedAttempts >= 2) {
+      await redis.set(`otp_lock: ${email}`, "locked", "EX", 1800); //Lock for 30 minutes
+      await redis.del(`otp: ${email}`, failedAttemptsKey);
+
+      return next(
+        new ValidationError(
+          "Too many failed attempts. Your account is locked for 30 minutes."
+        )
+      );
+    }
+    await redis.set(failedAttemptsKey, failedAttempts + 1, "EX", 300);
+    return next(
+      new ValidationError(`Incorrect OTP. ${2 - failedAttempts} attempts left.`)
+    );
+  }
+
+  await redis.del(`otp: ${email}`, failedAttemptsKey);
+};
