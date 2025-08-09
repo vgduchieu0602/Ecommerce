@@ -111,19 +111,26 @@ export const verifyOtp = async (
   await redis.del(`otp: ${email}`, failedAttemptsKey);
 };
 
-export const handleForgotPassword = async (req: Request, res: Response, next: NextFunction, userType: "user" | "seller") => {
+export const handleForgotPassword = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+  userType: "user" | "seller"
+) => {
   try {
-    const {email} = req.body
+    const { email } = req.body;
 
-    if(!email) {
-      throw new ValidationError("Email is required!")
+    if (!email) {
+      throw new ValidationError("Email is required!");
     }
 
-    //Find user/seller in DB 
-    const user = userType === "user" && await prisma.users.findUnique({where: {email}})
+    //Find user/seller in DB
+    const user =
+      userType === "user" &&
+      (await prisma.users.findUnique({ where: { email } }));
 
-    if(!user) {
-      throw new ValidationError(`${userType} not found!`)
+    if (!user) {
+      throw new ValidationError(`${userType} not found!`);
     }
 
     //Check OTP restriction
@@ -131,12 +138,34 @@ export const handleForgotPassword = async (req: Request, res: Response, next: Ne
     await trackOtpRequests(email, next);
 
     //Generate OTP and send Email
-    await sendOtp(email, user.name, "forgot-password-user-email")
+    await sendOtp(email, user.name, "forgot-password-user-email");
 
     res
       .status(200)
-      .json({message: "OTP sent to email. Please verify your account!"})
+      .json({ message: "OTP sent to email. Please verify your account!" });
   } catch (error) {
-    next(error)
+    next(error);
   }
-}
+};
+
+export const verifyForgotPasswordOtp = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const { email, otp } = req.body;
+
+    if (!email || !otp) {
+      throw new ValidationError("Missing required fields!");
+    }
+
+    await verifyOtp(email, otp, next);
+
+    res
+      .status(200)
+      .json({ message: "OTP verified. You can reset password rightnow!" });
+  } catch (error) {
+    next(error);
+  }
+};

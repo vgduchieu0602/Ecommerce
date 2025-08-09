@@ -5,6 +5,7 @@ import {
   sendOtp,
   trackOtpRequests,
   validateRegistrationData,
+  verifyForgotPasswordOtp,
   verifyOtp,
 } from "../utils/auth.helper";
 import prisma from "@packages/libs/prisma";
@@ -137,7 +138,10 @@ export const userForgotPassword = async (
   await handleForgotPassword(req, res, next, "user");
 };
 
-
+//Xác thực OTP cho việc quên mật khẩu
+export const verifyUserForgotPassword = async (req: Request, res: Response, next: NextFunction) => {
+  await verifyForgotPasswordOtp(req, res, next)
+}
 
 //Đặt lại mật khẩu người dùng
 export const userResetPassword = async (
