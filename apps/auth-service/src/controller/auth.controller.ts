@@ -1,6 +1,7 @@
 import { NextFunction, Request, Response } from "express";
 import {
   checkOtpRestriction,
+  handleForgotPassword,
   sendOtp,
   trackOtpRequests,
   validateRegistrationData,
@@ -126,3 +127,10 @@ export const loginUser = async (
     return next(error);
   }
 };
+
+//Quên mật khẩu
+export const forgotPassword = async (req: Request, res: Response, next: NextFunction) => {
+  await handleForgotPassword(req, res, next, "user")
+};
+
+
