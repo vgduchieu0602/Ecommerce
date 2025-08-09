@@ -129,8 +129,56 @@ export const loginUser = async (
 };
 
 //Quên mật khẩu
-export const forgotPassword = async (req: Request, res: Response, next: NextFunction) => {
-  await handleForgotPassword(req, res, next, "user")
+export const userForgotPassword = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  await handleForgotPassword(req, res, next, "user");
 };
 
 
+
+//Đặt lại mật khẩu người dùng
+export const userResetPassword = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const { email, newPassword } = req.body;
+
+    if (!email || !newPassword) {
+      return next(new ValidationError("Email and new password are required!"));
+    }
+
+    const user = await prisma.users.findUnique({ where: { email } });
+
+    if (!user) {
+      return next(new ValidationError("User not found!"));
+    }
+
+    //So sánh mật khẩu mới với mật khẩu hiện tại
+    const isSamePassword = await bcrypt.compare(newPassword, user.password!);
+
+    if (isSamePassword) {
+      return next(
+        new ValidationError(
+          "New password must be different from the existing one!"
+        )
+      );
+    }
+
+    //Mã hóa mật khẩu mới
+    const hashPassword = await bcrypt.hash(newPassword, 10);
+
+    await prisma.users.update({
+      where: { email },
+      data: { password: hashPassword },
+    });
+
+    res.status(200).json({ message: "Password reset successfully!" });
+  } catch (error) {
+    next(error);
+  }
+};
