@@ -10,6 +10,7 @@
   "private": true,
   "dependencies": {
     "@prisma/client": "^6.13.0",
+    "@tanstack/react-query": "^5.84.2",
     "axios": "^1.10.0",
     "bcryptjs": "^3.0.2",
     "cookie-parser": "^1.4.7",
@@ -28,6 +29,7 @@
     "nodemailer": "^7.0.5",
     "react": "19.0.0",
     "react-dom": "19.0.0",
+    "react-hook-form": "^7.62.0",
     "swagger-autogen": "^2.23.7",
     "swagger-ui-express": "^5.0.1"
   },

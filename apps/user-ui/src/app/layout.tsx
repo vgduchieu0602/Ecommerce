@@ -1,6 +1,7 @@
 import Header from "./shared/widgets/header";
 import "./global.css";
 import { Poppins, Roboto } from "next/font/google";
+import Providers from "apps/user-ui/src/app/provider";
 
 export const metadata = {
   title: "Trung Food",
@@ -27,8 +28,10 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`${roboto.variable} ${poppins.variable}`}>
-        <Header />
-        {children}
+        <Providers>
+          <Header />
+          {children}
+        </Providers>
       </body>
     </html>
   );

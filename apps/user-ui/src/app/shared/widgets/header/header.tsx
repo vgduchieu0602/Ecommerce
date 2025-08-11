@@ -22,9 +22,9 @@ const Header = () => {
           <input
             type="text"
             placeholder="Search..."
-            className="w-full px-4 font-Poppins font-medium border-[2.5px] border-[#3489FF] outline-none h-[50px]"
+            className="w-full px-4 font-Poppins font-medium border-[2.5px] border-[#FF541B] outline-none h-[50px]"
           />
-          <div className="w-[60px] cursor-pointer flex items-center justify-center h-[50px] bg-[#3489FF] absolute top-0 right-0">
+          <div className="w-[60px] cursor-pointer flex items-center justify-center h-[50px] bg-[#FF541B] absolute top-0 right-0">
             <Search className="" color="#fff" />
           </div>
         </div>
@@ -34,7 +34,7 @@ const Header = () => {
               href={"/login"}
               className="flex items-center justify-center mr-5"
             >
-              <CircleUser className="w-[40px] h-[40px]" color="#3489FF" />
+              <CircleUser className="w-[40px] h-[40px]" color="#FF541B" />
             </Link>
             <Link href={"/login"}>
               <span className="block font-medium">Hello, </span>
