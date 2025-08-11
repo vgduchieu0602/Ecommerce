@@ -105,7 +105,11 @@ const RegisterPage = () => {
     }
   };
 
-  const resendOtp = () => {};
+  const resendOtp = () => {
+    if (userData) {
+      registerMutation.mutate(userData);
+    }
+  };
 
   return (
     <div className="w-full py-10 min-h-[85px] bg-[#f1f1f1]">
@@ -206,7 +210,7 @@ const RegisterPage = () => {
               <button
                 type="submit"
                 disabled={registerMutation.isPending}
-                className="w-full text-lg cursor-pointer bg-black text-white py-2 rounded-lg"
+                className="w-full text-lg cursor-pointer bg-black text-white py-2 rounded-lg mt-4"
               >
                 {registerMutation.isPending ? "Registering..." : "Register"}
               </button>
