@@ -11,7 +11,7 @@ import {
 import prisma from "@packages/libs/prisma";
 import { AuthError, ValidationError } from "@packages/error-handler";
 import bcrypt from "bcryptjs";
-import jwt from "jsonwebtoken";
+import jwt, { JsonWebTokenError } from "jsonwebtoken";
 import { setCookie } from "../utils/cookies/setCookie";
 
 //Đăng ký người dùng mới
@@ -129,6 +129,54 @@ export const loginUser = async (
   }
 };
 
+//Refresh token user
+export const refreshToken = async (req: Request, res: Response) => {
+  try {
+    const refreshToken = req.cookies.refresh_token;
+
+    if (!refreshToken) {
+      return new ValidationError("Unauthorized! No refresh token.");
+    }
+
+    const decoded = jwt.verify(
+      refreshToken,
+      process.env.REFRESH_TOKEN_SECRET as string
+    ) as { id: string; role: string };
+
+    if (!decoded || !decoded.id || !decoded.role) {
+      return new JsonWebTokenError("Forbidden! Invalid refresh token.");
+    }
+
+    //Kiểm tra người dùng và người bán hàng phải tồn tại trong database
+    const user = await prisma.users.findUnique({ where: { id: decoded.id } });
+    if (!user) {
+      return new AuthError("Forbidden! User/Seller not found.");
+    }
+
+    //Tạo refresh access token cho người dùng
+    const newAccessToken = jwt.sign(
+      { id: decoded.id, role: decoded.role },
+      process.env.ACCESS_TOKEN_SECRET as string,
+      { expiresIn: "15m" }
+    );
+
+    setCookie(res, "access_token", newAccessToken);
+    return res.status(201).json({ success: true });
+  } catch (error) {
+    return res.status(500).json({ error: "Internal server error" });
+  }
+};
+
+//Lấy thông tin người dùng đã đăng nhập
+export const getUser = async (req: any, res: Response, next: NextFunction) => {
+  try {
+    const user = req.user;
+    res.status(201).json({ success: true, user });
+  } catch (error) {
+    next(error);
+  }
+};
+
 //Quên mật khẩu
 export const userForgotPassword = async (
   req: Request,
@@ -139,9 +187,13 @@ export const userForgotPassword = async (
 };
 
 //Xác thực OTP cho việc quên mật khẩu
-export const verifyUserForgotPassword = async (req: Request, res: Response, next: NextFunction) => {
-  await verifyForgotPasswordOtp(req, res, next)
-}
+export const verifyUserForgotPassword = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  await verifyForgotPasswordOtp(req, res, next);
+};
 
 //Đặt lại mật khẩu người dùng
 export const userResetPassword = async (
