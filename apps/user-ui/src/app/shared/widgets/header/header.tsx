@@ -45,7 +45,8 @@ const Header = () => {
                 <Link href={"/profile"}>
                   <span className="block font-medium">Hello, </span>
                   <span className="font-semibold">
-                    ${user?.name?.split(" ")[0]}
+                    {user?.name}
+                    {/* ${user?.name?.split(" ")[0]} */}
                   </span>
                 </Link>
               </>
