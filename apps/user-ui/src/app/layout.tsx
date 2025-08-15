@@ -4,8 +4,8 @@ import { Poppins, Roboto } from "next/font/google";
 import Providers from "apps/user-ui/src/app/provider";
 
 export const metadata = {
-  title: "Trung Food",
-  description: "Trung Food",
+  title: "TrungFood User",
+  description: "Trung Food for user",
 };
 
 const roboto = Roboto({

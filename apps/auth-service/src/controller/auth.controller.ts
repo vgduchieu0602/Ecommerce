@@ -238,3 +238,12 @@ export const userResetPassword = async (
     next(error);
   }
 };
+
+//Đăng ký tài khoản cho người bán hàng
+export const registerSeller = async (req: Request, res: Response, next:NextFunction) {
+  try {
+    
+  } catch (error) {
+    
+  }
+}
