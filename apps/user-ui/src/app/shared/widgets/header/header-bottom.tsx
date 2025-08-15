@@ -1,4 +1,5 @@
 "use client";
+import useUser from "apps/user-ui/src/app/hooks/useUser";
 import { navItems } from "apps/user-ui/src/configs/constants";
 import {
   AlignLeft,
@@ -13,6 +14,7 @@ import React, { useEffect, useState } from "react";
 const HeaderBottom = () => {
   const [show, setShow] = useState(false);
   const [isSticky, setIsSticky] = useState(false);
+  const { user, isLoading } = useUser();
 
   //Track scroll position
   useEffect(() => {
@@ -79,16 +81,44 @@ const HeaderBottom = () => {
           {isSticky && (
             <div className="flex items-center gap-8 pb-2">
               <div className="flex itens-center gap-2">
-                <Link
-                  href={"/login"}
-                  className="flex items-center justify-center mr-5"
-                >
-                  <CircleUser className="w-[40px] h-[40px]" color="#3489FF" />
-                </Link>
-                <Link href={"/login"}>
-                  <span className="block font-medium">Hello, </span>
-                  <span className="font-semibold">Sign In</span>
-                </Link>
+                {!isLoading && user ? (
+                  <>
+                    <Link
+                      href={"/profile"}
+                      className="flex items-center justify-center mr-5"
+                    >
+                      <CircleUser
+                        className="w-[40px] h-[40px]"
+                        color="#FF541B"
+                      />
+                    </Link>
+                    <Link href={"/profile"}>
+                      <span className="block font-medium">Hello, </span>
+                      <span className="font-semibold">
+                        {user?.name}
+                        {/* ${user?.name?.split(" ")[0]} */}
+                      </span>
+                    </Link>
+                  </>
+                ) : (
+                  <>
+                    <Link
+                      href={"/login"}
+                      className="flex items-center justify-center mr-5"
+                    >
+                      <CircleUser
+                        className="w-[40px] h-[40px]"
+                        color="#FF541B"
+                      />
+                    </Link>
+                    <Link href={"/login"}>
+                      <span className="block font-medium">Hello, </span>
+                      <span className="font-semibold">
+                        {isLoading ? "..." : "Sign In"}
+                      </span>
+                    </Link>
+                  </>
+                )}
               </div>
               <div className="flex items-center gap-5">
                 <Link href={"/wishlist"} className="relative">
