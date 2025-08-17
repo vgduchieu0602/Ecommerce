@@ -240,58 +240,122 @@ export const userResetPassword = async (
 };
 
 //Đăng ký tài khoản cho người bán hàng
-export const registerSeller = async (req: Request, res: Response, next:NextFunction) {
+export const sellerRegister = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
   try {
-    validateRegistrationData(req.body, "seller")
-    const {name, email} = req.body
-    
-    const {exisitingSeller} = await prisma.sellers.findUnique({where: {email}})
+    validateRegistrationData(req.body, "seller");
+    const { name, email } = req.body;
 
-    if(exisitingSeller) {
-      throw new ValidationError("Seller already exists with this email!")
+    const exisitingSeller = await prisma.sellers.findUnique({
+      where: { email },
+    });
+
+    if (exisitingSeller) {
+      throw new ValidationError("Seller already exists with this email!");
     }
 
-    await checkOtpRestriction(email, next)
-    await trackOtpRequests(email, next)
-    await sendOtp(name, email, "seller-activation")
+    await checkOtpRestriction(email, next);
+    await trackOtpRequests(email, next);
+    await sendOtp(name, email, "seller-activation-mail");
+
     res
       .status(200)
-      .json({message: "OTP sent to email. Please verify your account."})
-
-
+      .json({ message: "OTP sent to email. Please verify your account." });
   } catch (error) {
-    next(error)
+    next(error);
   }
-}
+};
 
 //Xác thực OTP cho người bán hàng
-export const verifySeller = async (req: Request, res: Response, next: NextFunction) => {
+export const verifySeller = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
   try {
-    const {email, otp, password, name, phone_number, country} =req.body
+    const { email, otp, password, name, phone_number, country } = req.body;
 
-    if(!email || !otp || !password || !name || !phone_number || !country) {
-      return next(new ValidationError("All fields are required!"))
+    if (!email || !otp || !password || !name || !phone_number || !country) {
+      return next(new ValidationError("All fields are required!"));
     }
 
-    const existingSeller = await prisma.sellers.findUnique({where: {email}})
+    const existingSeller = await prisma.sellers.findUnique({
+      where: { email },
+    });
 
-    if(!existingSeller) {
-      return next(new ValidationError("Seller already exists with this email!"))
+    if (existingSeller) {
+      return next(
+        new ValidationError("Seller already exists with this email!")
+      );
     }
 
-    await verifyOtp(email, otp, next)
-    const hashedPassword = await bcrypt.hash(password, 10)
+    await verifyOtp(email, otp, next);
+    const hashedPassword = await bcrypt.hash(password, 10);
 
     const seller = await prisma.sellers.create({
       data: {
-        name, email, password: hashedPassword, country, phone_number
-      }
-    })
+        name,
+        email,
+        password: hashedPassword,
+        country,
+        phone_number,
+      },
+    });
 
     res
       .status(201)
-      .json({seller, message: "Seller registered successfully!"})
+      .json({ seller, message: "Seller registered successfully!" });
   } catch (error) {
-    next(error)
+    next(error);
   }
-}
+};
+
+//Tạo cửa hàng mới
+export const createShop = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const { name, bio, address, opening_hours, website, category, sellerId } =
+      req.body;
+
+    if (
+      !name ||
+      !bio ||
+      !address ||
+      !opening_hours ||
+      !website ||
+      !category ||
+      !sellerId
+    ) {
+      return next(new ValidationError("All fields are required!"));
+    }
+
+    const shopData: any = {
+      name,
+      bio,
+      address,
+      opening_hours,
+      category,
+      sellerId,
+    };
+
+    if (website && website.trim() !== "") {
+      shopData.website = website;
+    }
+
+    const shop = await prisma.shops.create({
+      data: shopData,
+    });
+
+    res.status(201).json({ success: true, shop });
+  } catch (error) {
+    next(error);
+  }
+};
+
+//Khởi tạo kết nối cho Stripe tới tài khoản người bán hàng

@@ -15,7 +15,8 @@ const RegisterPage = () => {
   const [timer, setTimer] = useState(60);
   const [otp, setOtp] = useState(["", "", "", ""]);
   const [showOtp, setShowOtp] = useState(false);
-  const [userData, setUserData] = useState<FormData | null>(null);
+  const [sellerData, setSellerData] = useState<FormData | null>(null);
+  const [sellerId, setSellerId] = useState("");
   const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
 
   const router = useRouter();
@@ -42,13 +43,13 @@ const RegisterPage = () => {
   const registerMutation = useMutation({
     mutationFn: async (data: FormData) => {
       const response = await axios.post(
-        `${process.env.NEXT_PUBLIC_SERVER_URI}/api/user-registration`,
+        `${process.env.NEXT_PUBLIC_SERVER_URI}/api/seller-registration`,
         data
       );
       return response.data;
     },
     onSuccess: (_, formData) => {
-      setUserData(formData);
+      setSellerData(formData);
       setShowOtp(true);
       setCanResend(false);
       setTimer(60);
@@ -58,18 +59,19 @@ const RegisterPage = () => {
 
   const verifyOtpMutation = useMutation({
     mutationFn: async () => {
-      if (!userData) return;
+      if (!sellerData) return;
       const response = await axios.post(
-        `${process.env.NEXT_PUBLIC_SERVER_URI}/api/verify-user`,
+        `${process.env.NEXT_PUBLIC_SERVER_URI}/api/verify-seller`,
         {
-          ...userData,
+          ...sellerData,
           otp: otp.join(""),
         }
       );
       return response.data;
     },
-    onSuccess: () => {
-      router.push("/login");
+    onSuccess: (data) => {
+      setSellerId(data?.seller?.id);
+      setActiveStep(2);
     },
   });
 
@@ -87,7 +89,7 @@ const RegisterPage = () => {
     setOtp(newOtp);
 
     if (value && index < inputRefs.current.length - 1) {
-      inputRefs.current[index + 1]?.focus;
+      inputRefs.current[index + 1]?.focus();
     }
   };
 
@@ -101,8 +103,8 @@ const RegisterPage = () => {
   };
 
   const resendOtp = () => {
-    if (userData) {
-      registerMutation.mutate(userData);
+    if (sellerData) {
+      registerMutation.mutate(sellerData);
     }
   };
 
@@ -138,7 +140,7 @@ const RegisterPage = () => {
             {!showOtp ? (
               <form onSubmit={handleSubmit(onSubmit)}>
                 <h3 className="text-2xl font-semibold text-center mb-4">
-                  Create Account
+                  Create Seller Account
                 </h3>
                 {/** Name */}
                 <label className="block mb-1 text-gray-700">Name</label>

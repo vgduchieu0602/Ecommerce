@@ -92,7 +92,7 @@ const RegisterPage = () => {
     setOtp(newOtp);
 
     if (value && index < inputRefs.current.length - 1) {
-      inputRefs.current[index + 1]?.focus;
+      inputRefs.current[index + 1]?.focus();
     }
   };
 
