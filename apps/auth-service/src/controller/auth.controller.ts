@@ -397,9 +397,6 @@ export const createStripeConnectLink = async (
       return next(new ValidationError("Seller is not available with this id!"));
     }
 
-    console.log(stripe);
-    console.log(process.env.STRIPE_SECRET_KEY);
-
     const account = await stripe.accounts.create({
       type: "express",
       email: seller?.email,
@@ -417,8 +414,12 @@ export const createStripeConnectLink = async (
 
     const accountLink = await stripe.accountLinks.create({
       account: account.id,
-      refresh_url: `http://localhost:3000/pending`,
-      return_url: `http://localhost:3000/success`,
+      refresh_url: `${
+        process.env.FRONTEND_URL || "http://localhost:3000"
+      }/pending`,
+      return_url: `${
+        process.env.FRONTEND_URL || "http://localhost:3000"
+      }/success`,
       type: "account_onboarding",
     });
 
