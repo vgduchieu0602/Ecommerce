@@ -2,11 +2,12 @@
 import { useMutation } from "@tanstack/react-query";
 import { Eye, EyeOff } from "lucide-react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import React, { useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import axios, { AxiosError } from "axios";
 import { countries } from "apps/seller-ui/src/utils/countries";
+import CreateShop from "apps/seller-ui/src/shared/modules/auth/create-shop";
+import StripeLogo from "apps/seller-ui/src/assets/svgs/stripe-logo";
 
 const RegisterPage = () => {
   const [activeStep, setActiveStep] = useState(1);
@@ -18,8 +19,6 @@ const RegisterPage = () => {
   const [sellerData, setSellerData] = useState<FormData | null>(null);
   const [sellerId, setSellerId] = useState("");
   const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
-
-  const router = useRouter();
 
   const {
     register,
@@ -105,6 +104,21 @@ const RegisterPage = () => {
   const resendOtp = () => {
     if (sellerData) {
       registerMutation.mutate(sellerData);
+    }
+  };
+
+  const connectStripe = async () => {
+    try {
+      const response = await axios.post(
+        `${process.env.NEXT_PUBLIC_SERVER_URI}/api/create-stripe-link`,
+        { sellerId }
+      );
+
+      if (response.data.url) {
+        window.location.href = response.data.url;
+      }
+    } catch (error) {
+      console.log("Stripe Connection Error: ", error);
     }
   };
 
@@ -213,7 +227,7 @@ const RegisterPage = () => {
                 {/** Country */}
                 <label className="block mb-1 text-gray-700">Country</label>
                 <select
-                  className="w-full p-2 border border0-gray-300 outline-none rounded-[4px] mb-1"
+                  className="w-full p-2 border border-gray-300 outline-none rounded-[4px] mb-1"
                   {...register("country", { required: "Country is required" })}
                 >
                   <option value="">Select your country</option>
@@ -334,6 +348,21 @@ const RegisterPage = () => {
               </div>
             )}
           </>
+        )}
+        {activeStep === 2 && (
+          <CreateShop sellerId={sellerId} setActiveStep={setActiveStep} />
+        )}
+        {activeStep === 3 && (
+          <div className="text-center">
+            <h3 className="text-2xl font-semibold">Withdraw Method</h3>
+            <br />
+            <button
+              onClick={connectStripe}
+              className="w-full m-auto flex items-center justify-center gap-3 text-lg bg-black text-white py-2 rounded-lg"
+            >
+              <StripeLogo />
+            </button>
+          </div>
         )}
       </div>
     </div>
