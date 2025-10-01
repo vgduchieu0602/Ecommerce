@@ -18,30 +18,42 @@ import Stripe from "stripe";
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
 // const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY!);
 
-//Đăng ký người dùng mới
+//Middleware xử lý đăng ký user với OTP qua email
 export const userRegistration = async (
   req: Request,
   res: Response,
   next: NextFunction
 ) => {
   try {
+    //1. Kiểm tra dữ liệu người dùng gửi lên có hợp lệ không
     validateRegistrationData(req.body, "user");
+
+    //2. Lấy thông tin name và email từ request body
     const { name, email } = req.body;
 
+    //3. Kiểm tra trong database xem email này đã đăng ký chưa
     const existingUser = await prisma.users.findUnique({ where: { email } });
 
     if (existingUser) {
+      //Nếu đã tồn tại user với email này thì báo lỗi
       return next(new ValidationError("User already exists with this email"));
     }
 
+    //4. Kiểm tra xem email này có bị giới hạn gửi OTP không (ngăn ngừa spam)
     await checkOtpRestriction(email, next);
+
+    //5. Ghi nhận lại lần gửi OTP này để theo dõi số lượng request
     await trackOtpRequests(email, next);
+
+    //6. Gửi OTP tới email người dùng, sử dụng template "user-activation-mail"
     await sendOtp(name, email, "user-activation-mail");
 
+    //7. Trả về phản hồi thành công cho client
     res
       .status(200)
       .json({ message: "OTP sent to your email. Please verify your account!" });
   } catch (error) {
+    //8. Nếu có lỗi ở bất kỳ bước nào thì chuyển cho error middleware xử lý
     return next(error);
   }
 };

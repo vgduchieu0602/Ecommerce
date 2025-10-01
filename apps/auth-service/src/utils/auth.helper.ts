@@ -7,25 +7,47 @@ import prisma from "@packages/libs/prisma";
 
 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
+/*
+  Hàm này sẽ thực hiện kiểm tra dữ liệu đăng ký có hợp lệ không
+  Tham số:
+  - data: object chứa thông tin đăng ký (name, email, password, phone_number, country)
+  - userType: kiểu user ("user" hoặc "seller") vì seller cần thêm thông tin bổ sung
+  * Lưu ý:
+  Trong backend, validate thường là điều kiện bắt buộc, nếu dữ liệu không hợp lệ, ta cần chặn luồng xử lý,
+  không cho code phía sau chạy tiếp do đó throw sẽ kết thúc ngay lập tức và để middleware xử lý lỗi thống nhất
+*/
 export const validateRegistrationData = (
   data: any,
   userType: "user" | "seller"
 ) => {
+  //Destructure các field cần kiểm tra từ object data
   const { name, email, password, phone_number, country } = data;
+
+  //1. Kiểm tra các field bắt buộc
+  //   - với user: phải có name, email, password
+  //   - với seller: ngoài các field trên phải có phone_number và country
   if (
     !name ||
     !email ||
     !password ||
     (userType === "seller" && (!phone_number || !country))
   ) {
-    throw new ValidationError(`Missing required fields!`);
+    throw new ValidationError(`Missing required fields!`); //nếu thiếu bất kì field nào -> throw ra lỗi ValidationError
   }
 
+  //2. Kiểm tra định dạng email có hợp lệ không (dựa vào regex EmailRegex)
   if (!emailRegex.test(email)) {
     throw new ValidationError("Invalid email format!");
   }
 };
 
+/**
+ * Hàm này sẽ thực hiện kiểm tra các giới hạn khi người dùng yêu cầu OTP
+ * Cơ chế kiểm tra:
+ * - Nếu có khóa 'otp_lock:email' trong Redis -> tài khoản bị khóa do nhập sai OTP nhiều lần => chặn request và trả lỗi
+ * - Nếu có khóa 'otp_spam_lock:email' trong Redis -> người dùng đã request OTP quá nhiều lần => chặn request và trả lỗi
+ * - Nếu có khóa 'otp_cooldown:email' trong Redis -> người dùng vừa mới request OTP và đang trong thời gian chờ => chặn request và trả lỗi
+ */
 export const checkOtpRestriction = async (
   email: string,
   next: NextFunction
@@ -67,14 +89,32 @@ export const trackOtpRequests = async (email: string, next: NextFunction) => {
   await redis.set(otpRequestKey, otpRequests + 1, "EX", 3600); //Track request for 1 hour
 };
 
+/**
+ * Hàm này tạo và gửi mã OTP đến email người dùng
+ */
 export const sendOtp = async (
   name: string,
   email: string,
   template: string
 ) => {
+  //1. Tạo mã OTP ngẫu nhiên 4 chữ số:
+  //- Sử dụng randomtInt để đảm bảo OTP sinh ra an toàn, khó đoán
+  //- Chuyển sang chuỗi để dễ dàng chèn vào mail
   const otp = crypto.randomInt(1000, 9999).toString();
+
+  //2. Gửi email cho xác thực cho người dùng
   await sendEmail(email, "Verify your email", template, { name, otp });
-  await redis.set(`otp: ${email}`, otp, "EX", 300); //second
+
+  //Cú pháp của hàm redis.set:
+  //+ key: tên khóa trong Redis
+  //+ value: giá trị cần lưu
+  //+ "EX": option để chỉ định hết hạn theo giây
+  //+ number: số giây hết hạn
+
+  //3. Lưu OTP vào Redis
+  await redis.set(`otp: ${email}`, otp, "EX", 300); //5 minutes
+
+  //4. Đặt khóa cooldown trong Redis => ngăn người dùng spam gửi OTP liên tục
   await redis.set(`otp_cooldown: ${email}`, "true", "EX", 60);
 };
 

@@ -1,12 +1,14 @@
 {
-  "extends": "../../tsconfig.base.json",
+  "extends": "../../tsconfig.base.json", //kế thừa cấu hình Typescript từ root tránh lặp lại các thiết lập chung
   "compilerOptions": {
     "outDir": "out-tsc/auth-service",
     "types": ["node", "express"],
-    "rootDir": "../../",
-    "tsBuildInfoFile": "out-tsc/auth-service/tsconfig.app.tsbuildinfo"
+    "rootDir": "../../", //chỉ định thư mục gốc để TS tìm source
+    "tsBuildInfoFile": "out-tsc/auth-service/tsconfig.app.tsbuildinfo" //file lưu metadata về build -> build nhanh hơn lần sau
   },
+  //phạm vi file TS sẽ được compile
   "include": ["src/**/*.ts", "../../packages/**/*.ts"],
+  //danh sách file/thư mục không compile
   "exclude": [
     "out-tsc",
     "dist",

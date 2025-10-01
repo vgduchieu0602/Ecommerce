@@ -18,16 +18,15 @@ model images {
   shops     shops? @relation(fields: [shopId], references: [id])
 }
 
-
 model users {
-  id        String  @id @default(auto()) @map("_id") @db.ObjectId
-  name      String
-  email     String  @unique
-  password  String?
-  following String[]
-  avatar    images?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id          String  @id @default(auto()) @map("_id") @db.ObjectId
+  name        String
+  email       String  @unique
+  password    String?
+  following   String[]
+  avatar      images?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
   shopReviews shopReviews[]
 }
 

@@ -1,3 +1,4 @@
+//AppError kế thừa lớp Error có sẵn trong JS -> vẫn là 1 loại Error chuẩn nhưng được mở rộng thêm thông tin
 export class AppError extends Error {
   public readonly statusCode: number;
   public readonly isOperational: boolean;
@@ -13,7 +14,8 @@ export class AppError extends Error {
     this.statusCode = statusCode;
     this.isOperational = isOperational;
     this.details = details;
-    Error.captureStackTrace(this);  //giúp theo dõi stack trace của lỗi dễ dàng hơn khi debug
+    //StackTrace chỉ tập trung hiển thị từ nơi AppError được gọi
+    Error.captureStackTrace(this); //giúp theo dõi stack trace của lỗi dễ dàng hơn khi debug
   }
 }
 
@@ -24,7 +26,7 @@ export class NotFoundError extends AppError {
   }
 }
 
-// Dữ liệu từ client không hợp lệ
+// Dữ liệu từ client không hợp lệ (sử dụng cho Joi/ZOD/react-hook-form validation errors)
 export class ValidationError extends AppError {
   constructor(message = "Invalid request data", details?: any) {
     super(message, 400, true, details);
@@ -40,21 +42,21 @@ export class AuthError extends AppError {
 
 // Người dùng đã đăng nhập nhưng không đủ quyền để truy cập tài nguyên
 export class ForbiddenError extends AppError {
-    constructor(message = "Forbidden access") {
-        super(message, 403)
-    }
+  constructor(message = "Forbidden access") {
+    super(message, 403);
+  }
 }
 
 // Lỗi liên quan database
 export class DatabaseError extends AppError {
-    constructor(message = "Database error", details?:any) {
-        super(message, 500, true, details)
-    }
+  constructor(message = "Database error", details?: any) {
+    super(message, 500, true, details);
+  }
 }
 
 // Lỗi giới hạn tốc độ API
 export class RateLimitError extends AppError {
-    constructor(message = "Too many requests, please try again later") {
-        super(message, 429)
-    }
+  constructor(message = "Too many requests, please try again later") {
+    super(message, 429);
+  }
 }
