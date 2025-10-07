@@ -74,8 +74,10 @@ export const checkOtpRestriction = async (
 };
 
 export const trackOtpRequests = async (email: string, next: NextFunction) => {
-  //Kiểm tra số lần email đã request OTP
+  //Tạo key để lưu số lần yêu cầu OTP của email trong Redis
   const otpRequestKey = `otp_request_count: ${email}`;
+
+  //Lấy số lần yêu cầu OTP từ Redis, nếu không có thì mặc định là 0 
   let otpRequests = parseInt((await redis.get(otpRequestKey)) || "0");
   if (otpRequests >= 2) {
     await redis.set(`otp_spam_lock: ${email}`, "locked", "EX", 3600); //Lock for 1 hour
