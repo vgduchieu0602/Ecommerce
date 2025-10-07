@@ -16,11 +16,10 @@
         width: 100%;
         height: 100%;
         font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-        background: linear-gradient(135deg, #667eea, #764ba2);
+        background: linear-gradient(135deg, #ff7a00, #ffb347);
         display: flex;
         align-items: center;
         justify-content: center;
-        overflow: hidden;
       }
 
       .email-wrapper {
@@ -35,30 +34,30 @@
       .email-container {
         width: 100%;
         max-width: 650px;
-        background: rgba(255, 255, 255, 0.1);
+        background: rgba(255, 255, 255, 0.95);
         border-radius: 20px;
-        backdrop-filter: blur(15px);
-        box-shadow: 0 8px 40px rgba(0, 0, 0, 0.3);
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
         overflow: hidden;
-        color: #fff;
-        animation: fadeIn 1s ease-out;
+        color: #333;
+        animation: fadeIn 0.8s ease-out;
       }
 
       @keyframes fadeIn {
         from {
           opacity: 0;
-          transform: scale(0.96);
+          transform: translateY(20px);
         }
         to {
           opacity: 1;
-          transform: scale(1);
+          transform: translateY(0);
         }
       }
 
       .header {
         text-align: center;
         padding: 40px 20px 30px;
-        border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+        background: linear-gradient(135deg, #ff7a00, #ffb347);
+        color: white;
       }
 
       .header h1 {
@@ -81,16 +80,27 @@
         font-size: 20px;
         font-weight: 600;
         margin-bottom: 30px;
-        color: #fff;
+        color: #ff7a00;
       }
 
       .activation-box {
-        background: rgba(255, 255, 255, 0.15);
+        background: linear-gradient(135deg, #ff9f1c, #ff7a00);
         border-radius: 16px;
         padding: 30px 20px;
         margin-bottom: 30px;
-        box-shadow: 0 4px 25px rgba(0, 0, 0, 0.2);
+        color: white;
+        box-shadow: 0 8px 25px rgba(255, 122, 0, 0.3);
         animation: pulse 2s infinite;
+      }
+
+      @keyframes pulse {
+        0%,
+        100% {
+          transform: scale(1);
+        }
+        50% {
+          transform: scale(1.03);
+        }
       }
 
       .activation-box h2 {
@@ -102,23 +112,13 @@
         display: inline-block;
         font-size: 36px;
         font-weight: 800;
-        letter-spacing: 10px;
+        letter-spacing: 8px;
         margin: 20px 0;
         padding: 15px 25px;
         background: rgba(255, 255, 255, 0.2);
         border-radius: 12px;
         border: 2px solid rgba(255, 255, 255, 0.3);
         animation: bounce 2s infinite;
-      }
-
-      @keyframes pulse {
-        0%,
-        100% {
-          transform: scale(1);
-        }
-        50% {
-          transform: scale(1.03);
-        }
       }
 
       @keyframes bounce {
@@ -138,41 +138,41 @@
       }
 
       .expiry-notice {
-        background: rgba(255, 255, 255, 0.1);
+        background: #fff6e5;
+        border: 1px solid #ffe0b2;
         border-radius: 10px;
         padding: 15px;
         margin-bottom: 30px;
-        color: #ffeb99;
+        color: #a86a00;
         font-weight: 600;
       }
 
       .cta-button {
         display: inline-block;
         padding: 12px 40px;
-        background: linear-gradient(135deg, #667eea, #764ba2);
+        background: linear-gradient(135deg, #ff7a00, #ffb347);
         color: white;
         text-decoration: none;
         font-weight: 600;
         border-radius: 50px;
         transition: all 0.3s ease;
-        border: none;
-        box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+        box-shadow: 0 6px 20px rgba(255, 122, 0, 0.3);
       }
 
       .cta-button:hover {
         transform: translateY(-2px);
-        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+        box-shadow: 0 8px 25px rgba(255, 122, 0, 0.4);
       }
 
       .info-section {
         text-align: center;
         margin-top: 30px;
         font-size: 15px;
-        opacity: 0.85;
+        color: #555;
       }
 
       .info-section a {
-        color: #ffda79;
+        color: #ff7a00;
         text-decoration: none;
         font-weight: 600;
       }
@@ -185,8 +185,9 @@
         text-align: center;
         padding: 25px;
         font-size: 14px;
-        border-top: 1px solid rgba(255, 255, 255, 0.2);
-        opacity: 0.8;
+        background: #fff3e0;
+        color: #a86a00;
+        border-top: 1px solid #ffe0b2;
       }
 
       @media (max-width: 600px) {
@@ -196,7 +197,7 @@
 
         .otp-code {
           font-size: 28px;
-          letter-spacing: 6px;
+          letter-spacing: 5px;
         }
       }
     </style>
