@@ -1,5 +1,5 @@
 {
-  "extends": "../../tsconfig.base.json", //kế thừa cấu hình Typescript từ root tránh lặp lại các thiết lập chung
+  "extends": "../../tsconfig.base.json",
   "compilerOptions": {
     "outDir": "out-tsc/auth-service",
     "types": ["node", "express"],

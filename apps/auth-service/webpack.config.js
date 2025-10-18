@@ -5,11 +5,12 @@ module.exports = {
   output: {
     path: join(__dirname, "dist"),
   },
+  //Quy định cách tìm file khi import
   resolve: {
     alias: {
-        "@packages": resolve(__dirname, "../../packages")
+      "@packages": resolve(__dirname, "../../packages"),
     },
-    extensions: [".ts", ".js"]
+    extensions: [".ts", ".js"],
   },
   plugins: [
     new NxAppWebpackPlugin({

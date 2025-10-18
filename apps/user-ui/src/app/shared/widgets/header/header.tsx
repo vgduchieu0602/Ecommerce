@@ -26,9 +26,9 @@ const Header = () => {
           <input
             type="text"
             placeholder="Search..."
-            className="w-full px-4 font-Poppins font-medium border-[2.5px] border-[#FF541B] outline-none h-[50px]"
+            className="w-full px-4 font-Poppins font-medium border-[2.5px] border-[#FF541B] outline-none h-[55px]"
           />
-          <div className="w-[60px] cursor-pointer flex items-center justify-center h-[50px] bg-[#FF541B] absolute top-0 right-0">
+          <div className="w-[60px] cursor-pointer flex items-center justify-center h-[55px] bg-[#FF541B] absolute top-0 right-0">
             <Search className="" color="#fff" />
           </div>
         </div>
@@ -60,7 +60,9 @@ const Header = () => {
                 </Link>
                 <Link href={"/login"}>
                   <span className="block font-medium">Hello, </span>
-                  <span className="font-semibold">{isLoading ? "..." : "Sign In"}</span>
+                  <span className="font-semibold">
+                    {isLoading ? "..." : "Sign In"}
+                  </span>
                 </Link>
               </>
             )}

@@ -77,7 +77,7 @@ export const trackOtpRequests = async (email: string, next: NextFunction) => {
   //Tạo key để lưu số lần yêu cầu OTP của email trong Redis
   const otpRequestKey = `otp_request_count: ${email}`;
 
-  //Lấy số lần yêu cầu OTP từ Redis, nếu không có thì mặc định là 0 
+  //Lấy số lần yêu cầu OTP từ Redis, nếu không có thì mặc định là 0
   let otpRequests = parseInt((await redis.get(otpRequestKey)) || "0");
   if (otpRequests >= 2) {
     await redis.set(`otp_spam_lock: ${email}`, "locked", "EX", 3600); //Lock for 1 hour
@@ -120,23 +120,33 @@ export const sendOtp = async (
   await redis.set(`otp_cooldown: ${email}`, "true", "EX", 60);
 };
 
+/**
+ * Xác thực mã OTP được gửi đến email người dùng.
+ *
+ * @param email - Địa chỉ email của người dùng cần xác thực.
+ * @param otp - Mã OTP do người dùng nhập vào.
+ * @param next - Middleware function để xử lý lỗi.
+ */
 export const verifyOtp = async (
   email: string,
   otp: string,
   next: NextFunction
 ) => {
+  //Lấy mã otp đã lưu trong Redis
   const storedOtp = await redis.get(`otp: ${email}`);
   if (!storedOtp) {
-    throw new ValidationError("Invalid or expire OTP!");
+    throw new ValidationError("Invalid or expire OTP!"); //Không tìm thấy trả về lỗi
   }
 
+  //Lấy số lần nhập sai OTP, mặc định là 0
   const failedAttemptsKey = `otp_attemps: ${email}`;
   const failedAttempts = parseInt((await redis.get(failedAttemptsKey)) || "0");
 
+  //Nếu OTP nhập vào ko khớp với OTP đã lưu
   if (storedOtp !== otp) {
     if (failedAttempts >= 2) {
-      await redis.set(`otp_lock: ${email}`, "locked", "EX", 1800); //Lock for 30 minutes
-      await redis.del(`otp: ${email}`, failedAttemptsKey);
+      await redis.set(`otp_lock: ${email}`, "locked", "EX", 1800); //Khóa OTP trong 30p
+      await redis.del(`otp: ${email}`, failedAttemptsKey); //Xóa OTP và số lần sai để reset
 
       return next(
         new ValidationError(
@@ -144,15 +154,37 @@ export const verifyOtp = async (
         )
       );
     }
-    await redis.set(failedAttemptsKey, failedAttempts + 1, "EX", 300);
+
+    await redis.set(failedAttemptsKey, failedAttempts + 1, "EX", 300); //tăng số lần nhập sai và lưu lại trong Redis
     return next(
       new ValidationError(`Incorrect OTP. ${2 - failedAttempts} attempts left.`)
     );
   }
 
+  //Nếu OTP đúng: xóa OTP và số lần sai trong Redis
   await redis.del(`otp: ${email}`, failedAttemptsKey);
 };
 
+/**
+ * Xử lý yêu cầu "Quên mật khẩu" cho cả user và seller.
+ * Quy trình:
+ * 1. Nhận email từ request body.
+ * 2. Kiểm tra email có được cung cấp hay không — nếu không, ném lỗi ValidationError.
+ * 3. Tìm người dùng (user/seller) trong cơ sở dữ liệu dựa theo loại tài khoản (userType).
+ * 4. Nếu không tìm thấy, ném lỗi thông báo không tồn tại tài khoản.
+ * 5. Kiểm tra giới hạn gửi OTP (đảm bảo không gửi quá nhiều lần liên tục).
+ * 6. Theo dõi số lần gửi OTP để tránh lạm dụng.
+ * 7. Tạo mã OTP và gửi đến email của người dùng tương ứng với loại tài khoản (user hoặc seller).
+ * 8. Trả về phản hồi thành công (HTTP 200) với thông báo OTP đã được gửi.
+ *
+ * @param req - Đối tượng Request từ Express, chứa thông tin email trong body.
+ * @param res - Đối tượng Response dùng để trả kết quả cho client.
+ * @param next - Hàm middleware `next` để chuyển tiếp lỗi nếu có.
+ * @param userType - Loại tài khoản cần xử lý ("user" hoặc "seller").
+ *
+ * @throws ValidationError nếu thiếu email hoặc tài khoản không tồn tại.
+ * @throws Error khác nếu có sự cố trong quá trình gửi OTP hoặc truy vấn DB.
+ */
 export const handleForgotPassword = async (
   req: Request,
   res: Response,
@@ -166,7 +198,7 @@ export const handleForgotPassword = async (
       throw new ValidationError("Email is required!");
     }
 
-    //Find user/seller in DB
+    //Tìm user hoặc seller theo loại tài khoản
     const user =
       userType === "user"
         ? await prisma.users.findUnique({ where: { email } })
@@ -196,6 +228,7 @@ export const handleForgotPassword = async (
     next(error);
   }
 };
+
 
 export const verifyForgotPasswordOtp = async (
   req: Request,

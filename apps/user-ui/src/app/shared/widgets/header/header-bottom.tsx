@@ -12,11 +12,11 @@ import Link from "next/link";
 import React, { useEffect, useState } from "react";
 
 const HeaderBottom = () => {
-  const [show, setShow] = useState(false);
-  const [isSticky, setIsSticky] = useState(false);
-  const { user, isLoading } = useUser();
+  const [show, setShow] = useState(false); //trạng thái dropdown
+  const [isSticky, setIsSticky] = useState(false); //kiểm soát khi header trở thành sticky
+  const { user, isLoading } = useUser(); //Lấy thông tin user
 
-  //Track scroll position
+  //Theo dõi cuộn trang để kích hoạt header dạng sticky, cuộn quá 100px header sẽ cố định trên cùng
   useEffect(() => {
     const handleScroll = () => {
       if (window.scrollY > 100) {

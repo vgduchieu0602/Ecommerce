@@ -8,14 +8,16 @@ import { useRouter } from "next/navigation";
 import React, { useState } from "react";
 import { useForm } from "react-hook-form";
 
+//Kiểu dữ liệu cho form login
 type FormData = {
   email: string;
   password: string;
 };
 
 const LoginPage = () => {
-  const [passwordVisible, setPasswordVisible] = useState(false);
-  const [serverError, setServerError] = useState<string | null>(null);
+  // --- STATE ---
+  const [passwordVisible, setPasswordVisible] = useState(false); //toggle ẩn/hiện mật khẩu
+  const [serverError, setServerError] = useState<string | null>(null); //
   const [rememberMe, setRememberMe] = useState(false);
   const router = useRouter();
 

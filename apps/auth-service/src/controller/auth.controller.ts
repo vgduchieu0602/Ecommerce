@@ -58,41 +58,56 @@ export const userRegistration = async (
   }
 };
 
-//Xác thực người dùng với OTP
+//Midleware xác thực và tạo tài khoản người dùng mới
 export const verifyUser = async (
   req: Request,
   res: Response,
   next: NextFunction
 ) => {
   try {
+    //Lấy thông tin từ request body
     const { email, otp, password, name } = req.body;
+
+    //Kiểm tra nếu thiếu bất kỳ trường nào thì trả lỗi
     if (!email || !otp || !password || !name) {
       return next(new ValidationError("Missing required fields!"));
     }
 
+    //Kiểm tra email đã tồn tại trong hệ thống chưa
     const existingUser = await prisma.users.findUnique({ where: { email } });
 
+    //Đã tồn tại thì trả lỗi
     if (existingUser) {
       return next(new ValidationError("User already exists with this email"));
     }
 
+    //Xác thực OTP đã gửi tới email
     await verifyOtp(email, otp, next);
-    const hashedPassword = await bcrypt.hash(password, 10);
 
+    const hashedPassword = await bcrypt.hash(password, 10); //mã hõa mật khẩu
+
+    //Tạo người dùng mới
     const user = await prisma.users.create({
       data: { name, email, password: hashedPassword },
     });
 
+    //Return về response thành công
     res.status(201).json({
       success: true,
       message: "User register successfully!",
     });
   } catch (error) {
-    return next(error);
+    return next(error); //Bắt lỗi
   }
 };
 
-//Đăng nhập người dùng
+/**
+ * Xử lý đăng nhập người dùng.
+ *
+ * @param req - Request chứa email và mật khẩu trong body.
+ * @param res - Response để gửi dữ liệu phản hồi.
+ * @param next - Middleware function để xử lý lỗi.
+ */
 export const loginUser = async (
   req: Request,
   res: Response,
@@ -109,13 +124,13 @@ export const loginUser = async (
 
     if (!user) return next(new AuthError("User doesn't exist!"));
 
-    // Verify password
+    // So sánh mật khẩu người dùng nhập với mật khẩu đã mã hóa trong DB
     const isMatch = await bcrypt.compare(password, user.password!);
     if (!isMatch) {
       return next(new AuthError("Invalid email or password!"));
     }
 
-    // Generate access and refresh token
+    // Nếu xác thực thành công, tạo access token
     const accessToken = jwt.sign(
       { id: user.id, role: "user" },
       process.env.ACCESS_TOKEN_SECRET as string,
@@ -124,6 +139,7 @@ export const loginUser = async (
       }
     );
 
+    // Tạo refresh token (hạn 7 ngày) để dùng khi access token hết hạn
     const refreshToken = jwt.sign(
       { id: user.id, role: "user" },
       process.env.REFRESH_TOKEN_SECRET as string,
@@ -132,10 +148,11 @@ export const loginUser = async (
       }
     );
 
-    // Store the refresh and access token in an httpOnly secure cookie
+    // Lưu cả access token và refresh token vào cookie bảo mật (httpOnly)
     setCookie(res, "refresh_token", refreshToken);
     setCookie(res, "access_token", accessToken);
 
+    // Trả về phản hồi thành công, kèm theo thông tin cơ bản của người dùng
     res.status(200).json({
       message: "Login successfull",
       user: { id: user.id, email: user.email, name: user.name },
